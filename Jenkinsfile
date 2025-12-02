@@ -1,35 +1,72 @@
-node('CWEB-2040-01-app-server')
-{
-
-def app
-stage('Cloning Git')
-{
-    /* Let's make sure we have the repository cloned to our workspace */
-    checkout scm
-}
-
-stage('Build-and-Tag')
-{
-    /* This builds the actual image; 
-         * This is synonymous to docker build on the command line */
-    app = docker.build('schbros/amalan_game')
-}
-
-stage('Post-to-dockerhub')
-{
-    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_credentials')
-    {
-        app.push('latest')
+pipeline {
+    agent { label 'CWEB-2040-01-app-server' }
+ 
+    environment {
+        // DockerHub credentials ID stored in Jenkins
+        DOCKERHUB_CREDENTIALS = 'dockerhub_credentials'
+ 
+        // Your DockerHub repo/image
+        IMAGE_NAME = 'schbros/amalan_game'
+ 
+        // default tag
+        IMAGE_TAG = 'latest'
     }
-   
-}
-
-stage('Deploy')
-{
-    sh "docker-compose down"
-    sh "docker-compose up -d"
-}
-
+ 
+    stages {
+ 
+        stage('Cloning Git') {
+            steps {
+                // clones the repo that contains this Jenkinsfile
+                checkout scm
+            }
+        }
+ 
+        stage('Build-and-Tag') {
+            steps {
+                script {
+                    echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                    app = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
+ 
+        stage('Post-to-dockerhub') {
+            steps {
+                script {
+                    echo "Pushing image to DockerHub: ${IMAGE_NAME}:${IMAGE_TAG}"
+                    docker.withRegistry('https://registry.hub.docker.com', "${DOCKERHUB_CREDENTIALS}") {
+                        app.push("${IMAGE_TAG}")
+                    }
+                }
+            }
+        }
+ 
+        stage('Deploy') {
+            steps {
+                script {
+                    echo "Deploying using docker-compose from workspace..."
+ 
+                    // stop old containers
+                    sh 'docker-compose down || true'
+ 
+                    // start new containers (pulls latest if needed)
+                    sh 'docker-compose up -d --build'
+ 
+                    // show running containers
+                    sh 'docker ps'
+                }
+            }
+        }
+    }
+ 
+    post {
+        success {
+            echo "Pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check logs above."
+        }
+    }
 }
 
 
