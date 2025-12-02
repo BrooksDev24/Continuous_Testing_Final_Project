@@ -1,9 +1,9 @@
 version: "3.8"
 services:
-  snaketestapp:
-    image: schbros/chatappsonarpipe:latest
+  finalproject:
+    image: schbros/finalproject1:latest
     build: .
-    container_name: chatappzap
+    container_name: finalprojectcontainer
     ports: 
       - "80:3000"
     environment:
