@@ -78,6 +78,31 @@ pipeline{
                 }
             }
         }
+
+        
+
+        stage('DEPLOYMENT')
+        {
+            agent {label 'CWEB-2040-01-app-server'}
+            steps
+            {
+                echo "Starting deployment using this docker-compose..."
+                    script
+                    {
+                        dir("${WORKSPACE}")
+                        {
+                            sh'''
+                            docker-compose down
+                            docker-compose up -d
+                            docker ps
+
+                            '''
+                        }
+
+                    }
+                echo "Deployment completed successfully!"
+            }
+        }
         
  
         stage("Pull Target Container Image") {
@@ -252,29 +277,6 @@ pipeline{
 
 
 
-
-        stage('DEPLOYMENT')
-        {
-            agent {label 'CWEB-2040-01-app-server'}
-            steps
-            {
-                echo "Starting deployment using this docker-compose..."
-                    script
-                    {
-                        dir("${WORKSPACE}")
-                        {
-                            sh'''
-                            docker-compose down
-                            docker-compose up -d
-                            docker ps
-
-                            '''
-                        }
-
-                    }
-                echo "Deployment completed successfully!"
-            }
-        }
         
     }
 
