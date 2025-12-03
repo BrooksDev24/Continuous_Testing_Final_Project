@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   finalproject:
-    image: schbros/finalproject1:latest
+    image: schbros/finalproject1:1.0.0
     build: .
     container_name: finalprojectcontainer
     ports: 
