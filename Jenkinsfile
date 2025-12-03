@@ -61,6 +61,23 @@ pipeline{
                 }
             }
         }
+
+
+                stage('POST-TO-DOCKERHUB')
+        {
+            agent {label 'CWEB-2040-01-app-server'}
+            steps
+            {
+                script
+                {
+                    echo "pushing image ${IMAGE_NAME}:latest to Docker Hub..."
+                    docker.withRegistry('https://registry.hub.docker.com', "${DOCKERHUB_CREDENTIALS}")
+                    {
+                        app.push("latest")
+                    }
+                }
+            }
+        }
         
  
         stage("Pull Target Container Image") {
@@ -234,21 +251,7 @@ pipeline{
 
 
 
-        stage('POST-TO-DOCKERHUB')
-        {
-            agent {label 'CWEB-2040-01-app-server'}
-            steps
-            {
-                script
-                {
-                    echo "pushing image ${IMAGE_NAME}:latest to Docker Hub..."
-                    docker.withRegistry('https://registry.hub.docker.com', "${DOCKERHUB_CREDENTIALS}")
-                    {
-                        app.push("latest")
-                    }
-                }
-            }
-        }
+
 
         stage('DEPLOYMENT')
         {
